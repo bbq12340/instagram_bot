@@ -1,3 +1,4 @@
+#selenium package
 from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.common import keys
@@ -6,9 +7,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
+#time
 import time
 from datetime import datetime
+#own
 
 
 
@@ -70,6 +72,30 @@ class Instabot:
         except exceptions.NoSuchElementException:
             self.wait.until(EC.presence_of_element_located(SEARCHBAR_EC))
 
+    def save_post_info(self, post_link):
+        self.browser.get(post_link)
+        time.sleep(3)
+
+        POST_CONTENT_EC = By.CLASS_NAME, "QBXjJ"
+        self.wait.until(EC.presence_of_element_located(POST_CONTENT_EC))
+
+        USER_ID = self.browser.find_element_by_class_name("sqdOP").get_attribute("innerHTML")
+        QUOTES = self.browser.find_element_by_class_name("C4VMK").find_element_by_tag_name("span").get_attribute("innerHTML")
+        IMG= self.browser.find_elements_by_class_name("KL4Bh")
+        for i in range(0,6):
+            del IMG[-1]
+        for src in IMG:
+            src = src.get_attribute("href")
+        post_IMG = IMG
+
+        POST_INFO = {
+            "user": USER_ID,
+            "quotes": QUOTES,
+            "img": post_IMG,
+        }
+
+        print(POST_INFO)
+
 
     def set_like_by_tags(
         self, 
@@ -100,9 +126,11 @@ class Instabot:
                     del POSTS[0]
                 for link in range(0, amount):
                     post_link = POSTS[link].get_attribute('href')
+                    self.save_post_info(post_link)
             else:
                 for link in range(0, amount):
-                    print(POSTS[link].get_attribute('href'))
+                    post_link = POSTS[link].get_attribute('href')
+                    self.save_post_info(post_link)
             time.sleep(10)
         return self.browser
 
