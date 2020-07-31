@@ -73,6 +73,7 @@ class Instabot:
             self.wait.until(EC.presence_of_element_located(SEARCHBAR_EC))
 
     def save_post_info(self, post_link):
+
         self.browser.get(post_link)
         time.sleep(3)
 
@@ -80,12 +81,12 @@ class Instabot:
         self.wait.until(EC.presence_of_element_located(POST_CONTENT_EC))
 
         USER_ID = self.browser.find_element_by_class_name("sqdOP").get_attribute("innerHTML")
-        QUOTES = self.browser.find_element_by_class_name("C4VMK").find_element_by_tag_name("span").get_attribute("innerHTML")
+        QUOTES = self.browser.find_element_by_xpath('//div[contains(@class, "C4VMK")]/span').get_attribute('innerText')
         IMG= self.browser.find_elements_by_class_name("KL4Bh")
         for i in range(0,6):
             del IMG[-1]
         for src in IMG:
-            src = src.get_attribute("href")
+            src = src.find_element_by_tag_name("img").get_attribute("src")
         post_IMG = IMG
 
         POST_INFO = {
@@ -94,7 +95,7 @@ class Instabot:
             "img": post_IMG,
         }
 
-        print(POST_INFO)
+        return POST_INFO
 
 
     def set_like_by_tags(
@@ -106,7 +107,7 @@ class Instabot:
 
         EXPLORE_TAGS = By.CLASS_NAME, "drKGC"
         ARTICLE = By.CLASS_NAME, "KC1QD"
-        POSTS = []
+        POSTS_LINK = []
 
         for tag in TAGS:
             #locates searchbar
@@ -119,18 +120,25 @@ class Instabot:
             selected_query.send_keys(Keys.ARROW_DOWN, Keys.RETURN)
             self.wait.until(EC.presence_of_all_elements_located(ARTICLE))
             article = self.browser.find_element_by_class_name("KC1QD")
-            POSTS = article.find_elements_by_tag_name("a")
+            POSTS = article.find_elements_by_tag_name("a") #length=33
+            for p in POSTS:
+                p = str(p.get_attribute('href'))
+                POSTS_LINK.append(p)
             #delete all the popular posts link
-            if only_recent == True:
-                for i in range(0,9):
-                    del POSTS[0]
-                for link in range(0, amount):
-                    post_link = POSTS[link].get_attribute('href')
-                    self.save_post_info(post_link)
+            if amount < len(POSTS_LINK):
+                time.sleep(1)
+                if only_recent == True:
+                    for i in range(0,9):
+                        del POSTS_LINK[0]
+                    for i in range(0, amount):
+                        post_info = self.save_post_info(POSTS_LINK[i])
+                        print(i, post_info)
+                else:
+                    for i in range(0, amount):
+                        post_info = self.save_post_info(POSTS_LINK[i])
+                        print(i, post_info)
             else:
-                for link in range(0, amount):
-                    post_link = POSTS[link].get_attribute('href')
-                    self.save_post_info(post_link)
+                time.sleep(1)
             time.sleep(10)
         return self.browser
 
