@@ -125,19 +125,17 @@ class Instabot:
                 p = str(p.get_attribute('href'))
                 POSTS_LINK.append(p)
             #delete all the popular posts link
-            if amount < len(POSTS_LINK):
                 time.sleep(1)
-                if only_recent == True:
-                    for i in range(0,9):
-                        del POSTS_LINK[0]
-                    for i in range(0, amount):
-                        post_info = self.save_post_info(POSTS_LINK[i])
-                        print(i, post_info)
-                else:
-                    for i in range(0, amount):
-                        post_info = self.save_post_info(POSTS_LINK[i])
-                        print(i, post_info)
+            if only_recent == True:
+                for i in range(0,9):
+                    del POSTS_LINK[0]
+                for i in range(0, amount):
+                    post_info = self.save_post_info(POSTS_LINK[i])
+                    print(i, post_info)
             else:
+                for i in range(0, amount):
+                    post_info = self.save_post_info(POSTS_LINK[i])
+                    print(i, post_info)
                 time.sleep(1)
             time.sleep(10)
         return self.browser
