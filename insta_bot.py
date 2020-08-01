@@ -80,15 +80,26 @@ class Instabot:
         POST_CONTENT_EC = By.CLASS_NAME, "QBXjJ"
         self.wait.until(EC.presence_of_element_located(POST_CONTENT_EC))
 
+        USER_OTHER_POSTS = "Z666a"
+
         USER_ID = self.browser.find_element_by_class_name("sqdOP").get_attribute("innerHTML")
         QUOTES = self.browser.find_element_by_xpath('//div[contains(@class, "C4VMK")]/span').get_attribute('innerText')
         IMG= self.browser.find_elements_by_class_name("KL4Bh")
-        for i in range(0,6):
-            del IMG[-1]
-        for src in IMG:
-            src = src.find_element_by_tag_name("img").get_attribute("src")
-        post_IMG = IMG
-
+        
+        try:
+            other_posts = self.browser.find_element_by_class_name(USER_OTHER_POSTS)
+            #delete user's other related posts
+            for i in range(0,6):
+                del IMG[-1]
+            #get the src for every posted imgs
+            for src in IMG:
+                src = src.find_element_by_tag_name("img").get_attribute("src")
+            post_IMG = IMG
+        #skip del other related posts - "the element won't show since the user has less than 6 posts"
+        except exceptions.NoSuchAttributeException:
+            for src in IMG:
+                src = src.find_element_by_tag_name("img").get_attribute("src")
+            post_IMG = IMG
         POST_INFO = {
             "user": USER_ID,
             "quotes": QUOTES,
@@ -98,7 +109,7 @@ class Instabot:
         return POST_INFO
 
 
-    def set_like_by_tags(
+    def search_by_tags(
         self, 
         TAGS: list,
         amount: int=5,
@@ -107,7 +118,27 @@ class Instabot:
 
         EXPLORE_TAGS = By.CLASS_NAME, "drKGC"
         ARTICLE = By.CLASS_NAME, "KC1QD"
-        POSTS_LINK = []
+        self.only_recent = only_recent
+
+        def count_posts(article):
+            POSTS_LINK = []
+            POSTS = article.find_elements_by_tag_name("a") #length=33
+            for p in POSTS:
+                p = str(p.get_attribute('href'))
+                POSTS_LINK.append(p)
+            return POSTS_LINK
+    
+        def log_post_info(POSTS_LINK):
+            if self.only_recent == True:
+                for i in range(0,9):
+                    del POSTS_LINK[0]
+                for i in range(0, amount):
+                    post_info = self.save_post_info(POSTS_LINK[i])
+                    print(i, post_info)
+            else:
+                for i in range(0, amount):
+                    post_info = self.save_post_info(POSTS_LINK[i])
+                    print(i, "saving succeeded!")
 
         for tag in TAGS:
             #locates searchbar
@@ -120,23 +151,19 @@ class Instabot:
             selected_query.send_keys(Keys.ARROW_DOWN, Keys.RETURN)
             self.wait.until(EC.presence_of_all_elements_located(ARTICLE))
             article = self.browser.find_element_by_class_name("KC1QD")
-            POSTS = article.find_elements_by_tag_name("a") #length=33
-            for p in POSTS:
-                p = str(p.get_attribute('href'))
-                POSTS_LINK.append(p)
+            POSTS_LINK = count_posts(article)
             #delete all the popular posts link
-                time.sleep(1)
-            if only_recent == True:
-                for i in range(0,9):
-                    del POSTS_LINK[0]
-                for i in range(0, amount):
-                    post_info = self.save_post_info(POSTS_LINK[i])
-                    print(i, post_info)
-            else:
-                for i in range(0, amount):
-                    post_info = self.save_post_info(POSTS_LINK[i])
-                    print(i, post_info)
-                time.sleep(1)
+            time.sleep(1)
+            while amount >= len(POSTS_LINK):
+                current_height = "window.scrollY"
+                max_height = "document.body.scrollHeight"
+                self.browser.execute_script(f"window.scrollBy({current_height}, {max_height});")
+                self.wait.until(EC.presence_of_all_elements_located(ARTICLE))
+                POSTS_LINK = count_posts(article)
+                time.sleep(5)
+                if amount < len(POSTS_LINK):
+                    log_post_info(POSTS_LINK)
+                    break
             time.sleep(10)
         return self.browser
 
