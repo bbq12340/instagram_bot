@@ -11,7 +11,11 @@ from selenium.webdriver.common.by import By
 import time
 from datetime import datetime
 #own
-
+from workspace import (
+    log_login, 
+    log_post_info, 
+    log_search_tags,
+)
 
 
 IG = "https://www.instagram.com/"
@@ -30,7 +34,8 @@ class Instabot:
         #insta_login
         self.username = username
         self.password = password
-        self.logged_in_browser = self.login(username, password)
+        admin = self.login(username, password)
+        self.get_followers_list(admin)
         time.sleep(10)
 
         #locate_searchbar
@@ -56,12 +61,17 @@ class Instabot:
 
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
+            log_login(current_time)
             print(f"Safely logged in! TimeStamp: {current_time}")
 
             return self.browser
         except exceptions.NoSuchElementException:
             print("no such element")
             self.browser.close()
+    def get_followers_list(self, admin):
+        self.browser.get(IG + self.username)
+        
+        return 
     
     def locate_searchbar(self, browser):
         SEARCHBAR = "TqC_a"
@@ -134,17 +144,21 @@ class Instabot:
                     del POSTS_LINK[0]
                 for i in range(0, amount):
                     post_info = self.save_post_info(POSTS_LINK[i])
+                    log_post_info(post_info)
                     print(i, post_info)
             else:
                 for i in range(0, amount):
                     post_info = self.save_post_info(POSTS_LINK[i])
-                    print(i, "saving succeeded!")
+                    log_post_info(post_info)
+                    print(i, post_info)
 
         for tag in TAGS:
             #locates searchbar
             query = self.locate_searchbar(self.browser)
             query.click()
-            print(f"searching #{tag} - {TAGS.index(tag)+1}/{len(TAGS)}")
+            PROGRESS_STRING = "searching #{tag} - {TAGS.index(tag)+1}/{len(TAGS)}"
+            log_search_tags(PROGRESS_STRING)
+            print(PROGRESS_STRING)
             selected_query = self.browser.find_element_by_class_name('XTCLo')
             selected_query.send_keys("#"+tag)
             self.wait.until(EC.presence_of_all_elements_located(EXPLORE_TAGS))
