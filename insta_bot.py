@@ -15,6 +15,8 @@ from workspace import (
     log_login, 
     log_post_info, 
     log_search_tags,
+    log_followers_record,
+    log_followers_list,
 )
 
 
@@ -69,8 +71,34 @@ class Instabot:
             print("no such element")
             self.browser.close()
     def get_followers_list(self, admin):
+
+        PROFILE_INFO = By.CLASS_NAME, "zwlfE"
+        FOLLOWERS_XPATH = '//section[contains(@class="zwlfE")]/ul/li[2]'
+        FOLLOWERS_CLASS_NAME = By.CLASS_NAME, "isgrP"
+        FOLLOWERS_LIST = []
+
         self.browser.get(IG + self.username)
-        
+        self.wait.until(EC.presence_of_element_located(PROFILE_INFO))
+        followers = self.browser.find_element_by_xpath(FOLLOWERS_XPATH)
+        followers_count = int(followers.find_element_by_tag_name("span").get_attribute("innerText"))
+        followers.click()
+        self.wait.until(EC.presence_of_element_located(FOLLOWERS_CLASS_NAME))
+        followers_list = self.browser.find_element_by_class_name('PZuss').find_elements_by_tag_name('li')
+
+        #scroll until the count = len(list)
+        followers_list_script = 'followerList = document.querySelector(".isgrP")'
+        self.browser.execute_script(followers_list_script)
+        while followers_count > len(followers_list):
+            self.browser.execute_script('followerList.scrollTop = followerList.scrollHeight')
+            followers_list = self.browser.find_element_by_class_name('PZuss').find_elements_by_tag_name('li')
+            if followers_count == len(followers_list):
+                for name in followers_list:
+                    name = name.find_elements_by_class_name('FPmhX').get_attribute('innerText')
+                    FOLLOWERS_LIST.append(name)
+                now = datetime.now()
+                log_followers_record(now, followers_count)
+                log_followers_list(now, FOLLOWERS_LIST)
+                break
         return 
     
     def locate_searchbar(self, browser):
