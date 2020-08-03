@@ -1,0 +1,1 @@
+UPDATE. The remaining Instagram Legacy API permission ("Basic Permission") was disabled on June 29, 2020. 
