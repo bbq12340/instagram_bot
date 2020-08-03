@@ -58,8 +58,8 @@ class Instabot:
         self.wait.until(EC.presence_of_element_located(LOGIN_FORM))
 
         try:
-            self.browser.find_element_by_name("username").send_keys('bbq12340@hotmail.com')
-            self.browser.find_element_by_name("password").send_keys('davidj171', Keys.RETURN)
+            self.browser.find_element_by_name("username").send_keys(username)
+            self.browser.find_element_by_name("password").send_keys(password, Keys.RETURN)
 
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
